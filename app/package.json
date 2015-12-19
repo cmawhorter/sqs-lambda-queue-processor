@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "sqsLambdaWorker",
+  "version": "0.0.1",
+  "main": "app.js",
+  "dependencies": {
+    "aws-sdk": "^2.2.25"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}

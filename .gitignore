@@ -32,6 +32,10 @@ node_modules
 # dev env
 aws.sh
 
-# EC worker app bundle
+# possible filenames for EC worker app bundle
+# FIXME: proper packaging is needed
+# standardized name
+eb-app-bundle.zip
+# in case i forget to rename the standard name
 Archive.zip
 app.zip

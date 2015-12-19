@@ -28,7 +28,7 @@ var forwardMessageToLambdaWorker = function(req, res, body) {
         if (data.Action) {
           switch (data.Action) {
             case 'DELETE':
-              // tells EB worker sqsd that message was processed and it issues a DeleteMessage
+              // yay! tells EB worker sqsd that message was processed and it issues a DeleteMessage
               res.writeHead(200);
               res.end();
               return;

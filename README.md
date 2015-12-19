@@ -14,3 +14,4 @@
   9. make node.js version static
 10. Dynamic error visibility;  currently set to "-1" i.e. retry as quickly as possible.  exp backoff would be nice or a longer time by default at least
 11. remove external access to cluster
+12. many parameters can be automatically set based on target instance size

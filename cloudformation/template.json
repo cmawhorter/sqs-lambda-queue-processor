@@ -22,25 +22,25 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
     "AWSEBVisibilityTimeout": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The amount of time in seconds an incoming message is locked for processing. aka maximum seconds it will take your lambda function to receive, process, and return a sqs message.",
+      "Description": "[Required] The amount of time in seconds an incoming message is locked for processing. This should be the maximum processing time of your Lambda Worker increased by a few seconds to account for latency.",
       "Default": 300
     },
     "AWSEBWorkerQueueURL": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
       "Description": "The URL to the worker SQS queue",
       "Default": ""
     },
     "AWSLambdaWorkerArn": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
-      "Description": "The lambda worker that will process the SQS events",
+      "Description": "[Required] The lambda worker that will process the SQS events",
       "Default": ""
     },
     "LogPublicationControl": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
       "Description": "If true customer service logs will be published to S3.",
       "AllowedValues": [
@@ -51,42 +51,54 @@
       "Default": "false"
     },
     "AWSEBRetentionPeriod": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The amount of time in seconds a message is valid and will be actively processed",
+      "Description": "[Required] The amount of time in seconds a message is valid and will be actively processed",
       "Default": 345600
     },
     "HooksPkgUrl": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
-      "Description": "URL to hooks package",
+      "Description": "[Required] Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1",
       "Default": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/hooks.tar.gz"
     },
     "AWSEBWorkerDeadLetterQueueURL": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
       "Description": "The URL to the worker dead letter SQS queue",
       "Default": ""
     },
     "AWSEBEnvironmentName": {
-      "NoEcho": "true",
-      "Type": "String"
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1"
     },
     "AWSEBReferrerId": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
+      "Description": "Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1",
       "Default": ""
     },
     "AWSEBConnectTimeout": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
       "Description": "The timeout in seconds for new connections to the application",
       "Default": 5
     },
+    "AWSEBSecurityGroupVPC": {
+      "NoEcho": false,
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "[Required] Private VPC for EB nodes"
+    },
+    "AWSEBSecurityGroupVPCSubnets": {
+      "NoEcho": false,
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "[Required] A list of subnets you'd like to use from your VPC"
+    },
     "InstanceType": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
-      "Description": "WebServer EC2 instance type",
+      "Description": "[Required] WebServer EC2 instance type",
       "AllowedValues": [
         "t2.micro",
         "t2.small",
@@ -141,64 +153,44 @@
       "Default": "t1.micro"
     },
     "AWSEBHttpConnections": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The maximum number of concurrent connections to the applications",
+      "Description": "[Required] The maximum number of concurrent connections to the applications",
       "Default": 50
     },
     "AWSEBErrorVisibilityTimeout": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The amount of time in seconds to wait before retrying a message",
+      "Description": "[Required] The amount of time in seconds to wait before retrying a message",
       "Default": -1
     },
     "AWSEBInactivityTimeout": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The timeout in seconds for existing connections to the application",
+      "Description": "[Required] The timeout in seconds for existing connections to the application. Should be the Visibility Timeout - N where N >= 1. Prevents processing race conditions.",
       "Default": 299
     },
     "AWSEBEnvironmentId": {
-      "NoEcho": "true",
-      "Type": "String"
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1"
     },
     "AppSource": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
-      "Description": "Application Source",
+      "Description": "[Required] EB App Bundle",
       "Default": "https://github.com/cmawhorter/sqs-lambda-queue-processor/releases/download/v1.0.0-alpha1/eb-app-bundle.zip"
     },
-    "AWSEBMimeType": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "The mime type of the message being sent",
-      "Default": "application/json"
-    },
     "AWSEBMaxRetries": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "Number",
-      "Description": "The maximum number of retries after which the message is discarded",
+      "Description": "[Required] The maximum number of retries after which the message is discarded",
       "Default": 10
     },
-    "AWSEBHealthCheck": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "The serialized value of the application healthcheck",
-      "Default": ""
-    },
     "AWSEBAgentId": {
-      "NoEcho": "true",
+      "NoEcho": false,
       "Type": "String",
-      "Default": ""
-    },
-    "AWSEBEnvironmentBucket": {
-      "NoEcho": "true",
-      "Type": "String"
-    },
-    "NodeCommand": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Command to start the Node.js application. If an empty string is specified, app.js is used, then server.js, then \"npm start\" in that order.",
+      "Description": "Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1",
       "Default": ""
     }
   },
@@ -236,7 +228,6 @@
     "AWSEBAutoScalingLaunchConfiguration": {
       "Properties": {
         "SecurityGroups": [
-          "sg-03040167",
           {
             "Ref": "AWSEBSecurityGroup"
           }
@@ -476,7 +467,7 @@
         "InstanceType": {
           "Ref": "InstanceType"
         },
-        "AssociatePublicIpAddress": "true",
+        "AssociatePublicIpAddress": false,
         "InstanceMonitoring": false
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
@@ -512,7 +503,9 @@
     "AWSEBSecurityGroup": {
       "Properties": {
         "GroupDescription": "VPC Security Group",
-        "VpcId": "vpc-17695672"
+        "VpcId": {
+          "Ref": "AWSEBSecurityGroupVPC"
+        }
       },
       "Type": "AWS::EC2::SecurityGroup",
       "Metadata": {
@@ -583,22 +576,19 @@
           },
           "_ParameterTriggers": {
             "_TriggerConfigDeployment": [
-              "LogPublicationControl",
-              "NodeCommand"
+              "LogPublicationControl"
             ],
             "_TriggerSqsdDeployment": [
               "AWSEBWorkerQueueURL",
               "AWSEBWorkerDeadLetterQueueURL",
               "AWSEBWorkerQueue",
-              "AWSEBMimeType",
               "AWSEBMaxRetries",
               "AWSEBHttpConnections",
               "AWSEBConnectTimeout",
               "AWSEBInactivityTimeout",
               "AWSEBVisibilityTimeout",
               "AWSEBErrorVisibilityTimeout",
-              "AWSEBRetentionPeriod",
-              "AWSEBHealthCheck"
+              "AWSEBRetentionPeriod"
             ],
             "_TriggerAppDeployment": [
               "AppSource"
@@ -631,9 +621,7 @@
               "aws:elasticbeanstalk:container:nodejs": {
                 "NodeVersion": "4.2.3",
                 "GzipCompression": "false",
-                "NodeCommand": {
-                  "Ref": "NodeCommand"
-                },
+                "NodeCommand": "node app.js",
                 "ProxyServer": "none"
               },
               "aws:elasticbeanstalk:application:environment": [
@@ -1140,9 +1128,7 @@
               ]
             },
             "dynamodb_ssl": true,
-            "mime_type": {
-              "Ref": "AWSEBMimeType"
-            },
+            "mime_type": "application/json",
             "queue_url": {
               "Ref": "AWSEBWorkerQueue"
             },
@@ -1578,9 +1564,7 @@
                       },
                       "\n",
                       "environment_bucket=",
-                      {
-                        "Ref": "AWSEBEnvironmentBucket"
-                      },
+                      "",
                       "\n",
                       "stack_name=",
                       {
@@ -2060,17 +2044,13 @@
         "LaunchConfigurationName": {
           "Ref": "AWSEBAutoScalingLaunchConfiguration"
         },
-        "AvailabilityZones": [
-          "us-west-2a",
-          "us-west-2b",
-          "us-west-2c"
-        ],
+        "AvailabilityZones": {
+          "Fn::GetAZs": ""
+        },
         "Cooldown": "360",
-        "VPCZoneIdentifier": [
-          "subnet-3e19195b",
-          "subnet-28b9c671",
-          "subnet-51af8826"
-        ],
+        "VPCZoneIdentifier": {
+          "Ref": "AWSEBSecurityGroupVPCSubnets"
+        },
         "MaxSize": "4",
         "Tags": [
           {
@@ -2215,25 +2195,17 @@
             },
             "ProxyServer": "none",
             "NodeStaticFiles": "",
-            "AWSEBMimeType": {
-              "Ref": "AWSEBMimeType"
-            },
+            "AWSEBMimeType": "application/json",
             "AWSEBMaxRetries": {
               "Ref": "AWSEBMaxRetries"
             },
-            "AWSEBHealthCheck": {
-              "Ref": "AWSEBHealthCheck"
-            },
+            "AWSEBHealthCheck": "",
             "AWSEBAgentId": {
               "Ref": "AWSEBAgentId"
             },
-            "AWSEBEnvironmentBucket": {
-              "Ref": "AWSEBEnvironmentBucket"
-            },
+            "AWSEBEnvironmentBucket": "",
             "ServerPort": "80",
-            "NodeCommand": {
-              "Ref": "NodeCommand"
-            }
+            "NodeCommand": "node app.js"
           }
         },
         "AWS::ElasticBeanstalk::Metadata": {
@@ -2664,6 +2636,60 @@
     }
   },
   "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "Lambda Worker" },
+          "Parameters": [ "AWSLambdaWorkerArn" ]
+        },
+        {
+          "Label": { "default": "ElasticBeanstalk" },
+          "Parameters": [ "AWSEBSecurityGroupVPC", "AWSEBSecurityGroupVPCSubnets" ]
+        },
+        {
+          "Label": { "default": "SQS Work Queue" },
+          "Parameters": [ "AWSEBWorkerQueueURL", "AWSEBWorkerDeadLetterQueueURL" ]
+        },
+        {
+          "Label": { "default": "Logging" },
+          "Parameters": [ "LogPublicationControl" ]
+        },
+        {
+          "Label": { "default": "Advanced; Sources" },
+          "Parameters": [ "AppSource", "HooksPkgUrl" ]
+        },
+        {
+          "Label": { "default": "Advanced; Defaults" },
+          "Parameters": [
+            "InstanceType",
+            "AWSEBConnectTimeout",
+            "AWSEBHttpConnections",
+            "AWSEBRetentionPeriod",
+            "AWSEBVisibilityTimeout",
+            "AWSEBErrorVisibilityTimeout",
+            "AWSEBInactivityTimeout",
+            "AWSEBMaxRetries"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "AWSLambdaWorkerArn": { "default": "Function Arn" },
+        "AWSEBWorkerQueueURL": { "default": "SQS Work Queue URL" },
+        "AWSEBWorkerDeadLetterQueueURL": { "default": "SQS Dead Letter URL" },
+        "AWSEBSecurityGroupVPC": { "default": "ElasticBeanstalk VPC" },
+        "AWSEBSecurityGroupVPCSubnets": { "default": "ElasticBeanstalk Subnets" },
+        "LogPublicationControl": { "default": "Save Logs" },
+        "AppSource": { "default": "EB App Bundle" },
+        "HooksPkgUrl": { "default": "EB Worker Support" },
+        "InstanceType": { "default": "EB Instance Type" },
+        "AWSEBConnectTimeout": { "default": "App Conncetion Timeout" },
+        "AWSEBHttpConnections": { "default": "App Connection Limit" },
+        "AWSEBRetentionPeriod": { "default": "SQS Retention Period" },
+        "AWSEBVisibilityTimeout": { "default": "SQS Visibility Timeout" },
+        "AWSEBErrorVisibilityTimeout": { "default": "SQS Error Retry Delay" },
+        "AWSEBMaxRetries": { "default": "SQS Maximum Retries" }
+      }
+    },
     "AWS::CloudFormation::Designer": {
       "fdea4257-358f-4fe1-809a-6445432e70b0": {
         "size": {

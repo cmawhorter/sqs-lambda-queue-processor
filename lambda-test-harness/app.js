@@ -44,3 +44,11 @@ exports.imperfecthandler = function(event, context) {
     return exports[Math.random() % 2 === 0 ? 'softfailurehandler' : 'failurehandler'](event, context);
   }
 };
+
+exports.echohandler = function(event, context) {
+  console.log('Received event:', JSON.stringify(event, null, 2));
+  var message = event.Records[0].Sqs.Messages[0];
+  console.log('From SQS:', message.Body);
+  context.succeed(message);
+};
+

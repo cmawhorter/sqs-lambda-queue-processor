@@ -1,7 +1,7 @@
 'use strict';
 
 var AWS = require('aws-sdk');
-var lambda = new AWS.Lambda({ logger: console, region: 'us-east-1' });
+var lambda = new AWS.Lambda({ logger: process.env.NODE_ENV === 'development' ? console : null });
 
 var parseJson = require('./parse-json.js');
 

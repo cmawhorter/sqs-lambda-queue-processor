@@ -21,6 +21,80 @@
   },
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
+    "AWSEBHttpPath": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "/"
+    },
+    "AWSEBHealthCheck": {
+      "NoEcho": false,
+      "Type": "String",
+      "Default": ""
+    },
+    "AWSEBEnvironmentBucket": {
+      "NoEcho": false,
+      "Type": "String"
+    },
+    "InstancePort": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "/"
+    },
+    "NodeVersion": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "4.2.3"
+    },
+    "EnvironmentVariables": {
+      "NoEcho": false,
+      "Type": "CommaDelimitedList",
+      "Description": "",
+      "Default": ""
+    },
+    "NodeEnableGzip": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "false"
+    },
+    "ProxyServer": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "AllowedValues": [
+        "nginx",
+        "apache",
+        "none"
+      ],
+      "Default": "nginx"
+    },
+    "NodeStaticFiles": {
+      "NoEcho": false,
+      "Type": "CommaDelimitedList",
+      "Description": "",
+      "Default": ""
+    },
+    "AWSEBMimeType": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "application/json"
+    },
+    "NodeCommand": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "node app.js"
+    },
+    "ServerPort": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "",
+      "Default": "8080"
+    },
     "AWSEBVisibilityTimeout": {
       "NoEcho": false,
       "Type": "Number",
@@ -88,7 +162,12 @@
     "AWSEBSecurityGroupVPC": {
       "NoEcho": false,
       "Type": "AWS::EC2::VPC::Id",
-      "Description": "[Required] Private VPC for EB nodes"
+      "Description": "[Required] VPC ID"
+    },
+    "AWSEBSecurityGroupVPCDefault": {
+      "NoEcho": false,
+      "Type": "AWS::EC2::SecurityGroup::Id",
+      "Description": "[Required] VPC Security Group"
     },
     "AWSEBSecurityGroupVPCSubnets": {
       "NoEcho": false,
@@ -228,6 +307,9 @@
     "AWSEBAutoScalingLaunchConfiguration": {
       "Properties": {
         "SecurityGroups": [
+          {
+            "Ref": "AWSEBSecurityGroupVPCDefault"
+          },
           {
             "Ref": "AWSEBSecurityGroup"
           }
@@ -467,7 +549,7 @@
         "InstanceType": {
           "Ref": "InstanceType"
         },
-        "AssociatePublicIpAddress": false,
+        "AssociatePublicIpAddress": "true",
         "InstanceMonitoring": false
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
@@ -576,19 +658,31 @@
           },
           "_ParameterTriggers": {
             "_TriggerConfigDeployment": [
+              "EnvironmentVariables",
+              "InstancePort",
+              "ServerPort",
+              "NodeVersion",
+              "EnvironmentVariables",
+              "ProxyServer",
+              "NodeStaticFiles",
+              "EnvironmentVariables",
+              "NodeCommand",
               "LogPublicationControl"
             ],
             "_TriggerSqsdDeployment": [
               "AWSEBWorkerQueueURL",
               "AWSEBWorkerDeadLetterQueueURL",
               "AWSEBWorkerQueue",
+              "AWSEBMimeType",
+              "AWSEBHttpPath",
               "AWSEBMaxRetries",
               "AWSEBHttpConnections",
               "AWSEBConnectTimeout",
               "AWSEBInactivityTimeout",
               "AWSEBVisibilityTimeout",
               "AWSEBErrorVisibilityTimeout",
-              "AWSEBRetentionPeriod"
+              "AWSEBRetentionPeriod",
+              "AWSEBHealthCheck"
             ],
             "_TriggerAppDeployment": [
               "AppSource"
@@ -609,27 +703,39 @@
                   "NodeDownloadUrl"
                 ]
               },
-              "nodejs_proxy_port": "",
-              "server_port": "80",
+              "nodejs_proxy_port": "8081",
+              "server_port": {
+                "Ref": "ServerPort"
+              },
               "app_staging_dir": "/tmp/deployment/application",
-              "nodejs_standalone_port": "80",
-              "instance_port": "80",
+              "nodejs_standalone_port": "8080",
+              "instance_port": {
+                "Ref": "InstancePort"
+              },
               "nodejs_install_dir": "/opt/elasticbeanstalk/node-install",
               "source_bundle": "/opt/elasticbeanstalk/deploy/appsource/source_bundle"
             },
             "optionsettings": {
               "aws:elasticbeanstalk:container:nodejs": {
-                "NodeVersion": "4.2.3",
-                "GzipCompression": "false",
-                "NodeCommand": "node app.js",
-                "ProxyServer": "none"
+                "NodeVersion": {
+                  "Ref": "NodeVersion"
+                },
+                "GzipCompression": {
+                  "Ref": "NodeEnableGzip"
+                },
+                "NodeCommand": {
+                  "Ref": "NodeCommand"
+                },
+                "ProxyServer": {
+                  "Ref": "ProxyServer"
+                }
               },
               "aws:elasticbeanstalk:application:environment": [
                 {
                   "Fn::Join": [
-                    "",
+                    "=",
                     [
-                      "LAMBDA_WORKER_FUNCTION_NAME=",
+                      "LAMBDA_WORKER_FUNCTION_NAME",
                       {
                         "Ref": "AWSLambdaWorkerArn"
                       }
@@ -643,7 +749,9 @@
                 }
               },
               "aws:elasticbeanstalk:container:nodejs:staticfiles": {
-                "NodeStaticFiles": ""
+                "NodeStaticFiles": {
+                  "Ref": "NodeStaticFiles"
+                }
               }
             },
             "system": {
@@ -1104,7 +1212,9 @@
             "keepalive": true,
             "via_sns": false,
             "threads": 50,
-            "http_path": "/",
+            "http_path": {
+              "Ref": "AWSEBHttpPath"
+            },
             "inactivity_timeout": {
               "Ref": "AWSEBInactivityTimeout"
             },
@@ -1114,7 +1224,9 @@
             "retention_period": {
               "Ref": "AWSEBRetentionPeriod"
             },
-            "http_port": "80",
+            "http_port": {
+              "Ref": "InstancePort"
+            },
             "sqs_verify_checksums": true,
             "verbose": false,
             "healthcheck": {
@@ -1122,13 +1234,17 @@
                 "",
                 [
                   "http:",
-                  "80",
+                  {
+                    "Ref": "InstancePort"
+                  },
                   "//localhost:80/health"
                 ]
               ]
             },
             "dynamodb_ssl": true,
-            "mime_type": "application/json",
+            "mime_type": {
+              "Ref": "AWSEBMimeType"
+            },
             "queue_url": {
               "Ref": "AWSEBWorkerQueue"
             },
@@ -1564,7 +1680,9 @@
                       },
                       "\n",
                       "environment_bucket=",
-                      "",
+                      {
+                        "Ref": "AWSEBEnvironmentBucket"
+                      },
                       "\n",
                       "stack_name=",
                       {
@@ -2149,11 +2267,15 @@
             "AWSEBWorkerQueueURL": {
               "Ref": "AWSEBWorkerQueueURL"
             },
-            "AWSEBHttpPath": "/",
+            "AWSEBHttpPath": {
+              "Ref": "AWSEBHttpPath"
+            },
             "LogPublicationControl": {
               "Ref": "LogPublicationControl"
             },
-            "InstancePort": "80",
+            "InstancePort": {
+              "Ref": "InstancePort"
+            },
             "AWSEBRetentionPeriod": {
               "Ref": "AWSEBRetentionPeriod"
             },
@@ -2169,12 +2291,18 @@
             "AWSEBReferrerId": {
               "Ref": "AWSEBReferrerId"
             },
-            "NodeVersion": "4.2.3",
-            "EnvironmentVariables": "",
+            "NodeVersion": {
+              "Ref": "NodeVersion"
+            },
+            "EnvironmentVariables": {
+              "Ref": "EnvironmentVariables"
+            },
             "AWSEBConnectTimeout": {
               "Ref": "AWSEBConnectTimeout"
             },
-            "NodeEnableGzip": "false",
+            "NodeEnableGzip": {
+              "Ref": "NodeEnableGzip"
+            },
             "InstanceType": {
               "Ref": "InstanceType"
             },
@@ -2193,19 +2321,33 @@
             "AppSource": {
               "Ref": "AppSource"
             },
-            "ProxyServer": "none",
-            "NodeStaticFiles": "",
-            "AWSEBMimeType": "application/json",
+            "ProxyServer": {
+              "Ref": "ProxyServer"
+            },
+            "NodeStaticFiles": {
+              "Ref": "NodeStaticFiles"
+            },
+            "AWSEBMimeType": {
+              "Ref": "AWSEBMimeType"
+            },
             "AWSEBMaxRetries": {
               "Ref": "AWSEBMaxRetries"
             },
-            "AWSEBHealthCheck": "",
+            "AWSEBHealthCheck": {
+              "Ref": "AWSEBHealthCheck"
+            },
             "AWSEBAgentId": {
               "Ref": "AWSEBAgentId"
             },
-            "AWSEBEnvironmentBucket": "",
-            "ServerPort": "80",
-            "NodeCommand": "node app.js"
+            "AWSEBEnvironmentBucket": {
+              "Ref": "AWSEBEnvironmentBucket"
+            },
+            "ServerPort": {
+              "Ref": "ServerPort"
+            },
+            "NodeCommand": {
+              "Ref": "NodeCommand"
+            }
           }
         },
         "AWS::ElasticBeanstalk::Metadata": {
@@ -2644,7 +2786,7 @@
         },
         {
           "Label": { "default": "ElasticBeanstalk" },
-          "Parameters": [ "AWSEBSecurityGroupVPC", "AWSEBSecurityGroupVPCSubnets" ]
+          "Parameters": [ "AWSEBSecurityGroupVPC", "AWSEBSecurityGroupVPCDefault", "AWSEBSecurityGroupVPCSubnets" ]
         },
         {
           "Label": { "default": "SQS Work Queue" },
@@ -2677,6 +2819,7 @@
         "AWSEBWorkerQueueURL": { "default": "SQS Work Queue URL" },
         "AWSEBWorkerDeadLetterQueueURL": { "default": "SQS Dead Letter URL" },
         "AWSEBSecurityGroupVPC": { "default": "ElasticBeanstalk VPC" },
+        "AWSEBSecurityGroupVPCDefault": { "default": "ElasticBeanstalk Security Group" },
         "AWSEBSecurityGroupVPCSubnets": { "default": "ElasticBeanstalk Subnets" },
         "LogPublicationControl": { "default": "Save Logs" },
         "AppSource": { "default": "EB App Bundle" },

@@ -15,3 +15,4 @@
 10. Dynamic error visibility;  currently set to "-1" i.e. retry as quickly as possible.  exp backoff would be nice or a longer time by default at least
 11. remove external access to cluster
 12. many parameters can be automatically set based on target instance size
+13. set up a quick tutorial for what/how prerequisites; lambda, vpc + subnets + firewall

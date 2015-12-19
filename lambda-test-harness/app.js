@@ -1,5 +1,7 @@
 // A lambda function that gives simulated responses to our SQS events.
 
+// Set your lambda function to exports.imperfecthandler to simulate failures
+
 console.log('Loading function');
 
 function delayedResponse(contextHandler) {

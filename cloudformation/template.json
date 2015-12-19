@@ -33,11 +33,11 @@
       "Description": "The URL to the worker SQS queue",
       "Default": ""
     },
-    "AWSEBHttpPath": {
+    "AWSLambdaWorkerArn": {
       "NoEcho": "true",
       "Type": "String",
-      "Description": "The relative path to the app to which we post. (Do not change default)",
-      "Default": "/"
+      "Description": "The lambda worker that will process the SQS events",
+      "Default": ""
     },
     "LogPublicationControl": {
       "NoEcho": "true",
@@ -49,12 +49,6 @@
       ],
       "ConstraintDescription": "must be Boolean.",
       "Default": "false"
-    },
-    "InstancePort": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Listen Port (Do not change default)",
-      "Default": "80"
     },
     "AWSEBRetentionPeriod": {
       "NoEcho": "true",
@@ -83,39 +77,11 @@
       "Type": "String",
       "Default": ""
     },
-    "NodeVersion": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Version of Node.js. (Do not change default)",
-      "AllowedValues": [
-        "0.8.28",
-        "0.10.41",
-        "0.12.9",
-        "4.2.3"
-      ],
-      "Default": "4.2.3"
-    },
-    "EnvironmentVariables": {
-      "NoEcho": "true",
-      "Type": "CommaDelimitedList",
-      "Description": "Program environment variables.",
-      "Default": ""
-    },
     "AWSEBConnectTimeout": {
       "NoEcho": "true",
       "Type": "Number",
       "Description": "The timeout in seconds for new connections to the application",
       "Default": 5
-    },
-    "NodeEnableGzip": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Specifies if gzip compression is enabled. (Do not change default)",
-      "AllowedValues": [
-        "true",
-        "false"
-      ],
-      "Default": "false"
     },
     "InstanceType": {
       "NoEcho": "true",
@@ -200,24 +166,7 @@
       "NoEcho": "true",
       "Type": "String",
       "Description": "Application Source",
-      "Default": "http://s3-us-west-2.amazonaws.com/elasticbeanstalk-samples-us-west-2/nodejs-sample.zip"
-    },
-    "ProxyServer": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Specifies which proxy server to be used for client connections. Static file mappings and gzip compression will not take effect if the proxy server is set to \"none\".",
-      "AllowedValues": [
-        "apache",
-        "nginx",
-        "none"
-      ],
-      "Default": "none"
-    },
-    "NodeStaticFiles": {
-      "NoEcho": "true",
-      "Type": "CommaDelimitedList",
-      "Description": "The directory to serve as static content.",
-      "Default": ""
+      "Default": "https://github.com/cmawhorter/sqs-lambda-queue-processor/releases/download/v1.0.0-alpha1/eb-app-bundle.zip"
     },
     "AWSEBMimeType": {
       "NoEcho": "true",
@@ -245,12 +194,6 @@
     "AWSEBEnvironmentBucket": {
       "NoEcho": "true",
       "Type": "String"
-    },
-    "ServerPort": {
-      "NoEcho": "true",
-      "Type": "String",
-      "Description": "Server Port",
-      "Default": "8080"
     },
     "NodeCommand": {
       "NoEcho": "true",
@@ -640,22 +583,13 @@
           },
           "_ParameterTriggers": {
             "_TriggerConfigDeployment": [
-              "EnvironmentVariables",
-              "InstancePort",
               "LogPublicationControl",
-              "InstancePort",
-              "ServerPort",
-              "NodeVersion",
-              "ProxyServer",
-              "NodeStaticFiles",
-              "EnvironmentVariables",
               "NodeCommand"
             ],
             "_TriggerSqsdDeployment": [
               "AWSEBWorkerQueueURL",
               "AWSEBWorkerDeadLetterQueueURL",
               "AWSEBWorkerQueue",
-              "AWSEBHttpPath",
               "AWSEBMimeType",
               "AWSEBMaxRetries",
               "AWSEBHttpConnections",
@@ -685,36 +619,35 @@
                   "NodeDownloadUrl"
                 ]
               },
-              "nodejs_proxy_port": "8081",
-              "server_port": {
-                "Ref": "ServerPort"
-              },
+              "nodejs_proxy_port": "",
+              "server_port": "80",
               "app_staging_dir": "/tmp/deployment/application",
-              "nodejs_standalone_port": "8080",
-              "instance_port": {
-                "Ref": "InstancePort"
-              },
+              "nodejs_standalone_port": "80",
+              "instance_port": "80",
               "nodejs_install_dir": "/opt/elasticbeanstalk/node-install",
               "source_bundle": "/opt/elasticbeanstalk/deploy/appsource/source_bundle"
             },
             "optionsettings": {
               "aws:elasticbeanstalk:container:nodejs": {
-                "NodeVersion": {
-                  "Ref": "NodeVersion"
-                },
-                "GzipCompression": {
-                  "Ref": "NodeEnableGzip"
-                },
+                "NodeVersion": "4.2.3",
+                "GzipCompression": "false",
                 "NodeCommand": {
                   "Ref": "NodeCommand"
                 },
-                "ProxyServer": {
-                  "Ref": "ProxyServer"
-                }
+                "ProxyServer": "none"
               },
               "aws:elasticbeanstalk:application:environment": [
-                "LAMBDA_WORKER_FUNCTION_NAME=sqsLambdaWorker",
-                "PORT=80"
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "LAMBDA_WORKER_FUNCTION_NAME=",
+                      {
+                        "Ref": "AWSLambdaWorkerArn"
+                      }
+                    ]
+                  ]
+                }
               ],
               "aws:elasticbeanstalk:hostmanager": {
                 "LogPublicationControl": {
@@ -722,9 +655,7 @@
                 }
               },
               "aws:elasticbeanstalk:container:nodejs:staticfiles": {
-                "NodeStaticFiles": {
-                  "Ref": "NodeStaticFiles"
-                }
+                "NodeStaticFiles": ""
               }
             },
             "system": {
@@ -1185,9 +1116,7 @@
             "keepalive": true,
             "via_sns": false,
             "threads": 50,
-            "http_path": {
-              "Ref": "AWSEBHttpPath"
-            },
+            "http_path": "/",
             "inactivity_timeout": {
               "Ref": "AWSEBInactivityTimeout"
             },
@@ -1197,9 +1126,7 @@
             "retention_period": {
               "Ref": "AWSEBRetentionPeriod"
             },
-            "http_port": {
-              "Ref": "InstancePort"
-            },
+            "http_port": "80",
             "sqs_verify_checksums": true,
             "verbose": false,
             "healthcheck": {
@@ -1207,9 +1134,7 @@
                 "",
                 [
                   "http:",
-                  {
-                    "Ref": "InstancePort"
-                  },
+                  "80",
                   "//localhost:80/health"
                 ]
               ]
@@ -2244,15 +2169,11 @@
             "AWSEBWorkerQueueURL": {
               "Ref": "AWSEBWorkerQueueURL"
             },
-            "AWSEBHttpPath": {
-              "Ref": "AWSEBHttpPath"
-            },
+            "AWSEBHttpPath": "/",
             "LogPublicationControl": {
               "Ref": "LogPublicationControl"
             },
-            "InstancePort": {
-              "Ref": "InstancePort"
-            },
+            "InstancePort": "80",
             "AWSEBRetentionPeriod": {
               "Ref": "AWSEBRetentionPeriod"
             },
@@ -2268,18 +2189,12 @@
             "AWSEBReferrerId": {
               "Ref": "AWSEBReferrerId"
             },
-            "NodeVersion": {
-              "Ref": "NodeVersion"
-            },
-            "EnvironmentVariables": {
-              "Ref": "EnvironmentVariables"
-            },
+            "NodeVersion": "4.2.3",
+            "EnvironmentVariables": "",
             "AWSEBConnectTimeout": {
               "Ref": "AWSEBConnectTimeout"
             },
-            "NodeEnableGzip": {
-              "Ref": "NodeEnableGzip"
-            },
+            "NodeEnableGzip": "false",
             "InstanceType": {
               "Ref": "InstanceType"
             },
@@ -2298,12 +2213,8 @@
             "AppSource": {
               "Ref": "AppSource"
             },
-            "ProxyServer": {
-              "Ref": "ProxyServer"
-            },
-            "NodeStaticFiles": {
-              "Ref": "NodeStaticFiles"
-            },
+            "ProxyServer": "none",
+            "NodeStaticFiles": "",
             "AWSEBMimeType": {
               "Ref": "AWSEBMimeType"
             },
@@ -2319,9 +2230,7 @@
             "AWSEBEnvironmentBucket": {
               "Ref": "AWSEBEnvironmentBucket"
             },
-            "ServerPort": {
-              "Ref": "ServerPort"
-            },
+            "ServerPort": "80",
             "NodeCommand": {
               "Ref": "NodeCommand"
             }
@@ -2505,7 +2414,7 @@
           "https://elasticbeanstalk-env-resources-us-west-2.s3.amazonaws.com/eb_patching_resources/download_source_bundle.py"
         ],
         "DefaultSSHPort": "22",
-        "ProxyServer": "nginx",
+        "ProxyServer": "none",
         "AWSEBHealthdEndpoint": "",
         "EmbeddedConfigsetsEnabled": "true",
         "EBSNSTopicArn": "arn:aws:sns:us-west-2:271372184222:ElasticBeanstalkNotifications-Environment-myFirstElasticBeans-env",

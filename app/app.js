@@ -1,6 +1,6 @@
 'use strict';
 
-var port = process.env.PORT || 3000
+var port = process.env.PORT || 80
   , http = require('http');
 
 var router = require('./lib/router.js');

@@ -9,7 +9,12 @@ var errorHandlers = require('./handlers/errors.js')
 var routes = {
   POST: {
     '/': sqsMessageHandler,
-    '/scheduled': function(req, res) { errorHandlers.generic(req, res, 500, 'Schedule Jobs Not Implemented'); },
+    '/scheduled': function(req, res) {
+      // not implemented; just discard messages that are getting passed
+      // FIXME: remove scheduled tasks
+      res.writeHead(200);
+      res.end();
+    },
   },
   GET: {
     '/health': healthCheckHandler,

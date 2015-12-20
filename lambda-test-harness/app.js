@@ -49,6 +49,9 @@ exports.echohandler = function(event, context) {
   console.log('Received event:', JSON.stringify(event, null, 2));
   var message = event.Records[0].Sqs.Messages[0];
   console.log('From SQS:', message.Body);
-  context.succeed(message);
+  context.succeed({
+    Action: 'DELETE',
+    date: new Date().toISOString(),
+  });
 };
 

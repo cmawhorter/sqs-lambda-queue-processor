@@ -21,7 +21,6 @@ Until the cloudformation template is up and running, here are some manual steps.
 1. Enter the health check URL `/health`
 1. Check "Enable rolling updates"
 1. Under Health Reporting, select "Basic" from System type.  Click Next.
-1. Enter an environment tag key "LAMBDA_WORKER_FUNCTION_NAME" and a value that is the Lambda function ARN that will be receiving our simulate SQS events and working on them. Click Next. (FIXME: this might be wrong and instead require editing the Configuration -> Software Configuration -> Environment Properties after the app is launched)
 1. Leave Worker Details defaults (Worker queue, HTTP Path, MIME type, etc.).  Click Next.
 1. (My knowledge of AWS VPC is minimal so this step may be incorrect.)  On VPC Configuration check both ELB and EC2 checkboxes for each AZ row. 
 1. Select "Internal" for ELB visibility.  
@@ -31,6 +30,7 @@ Until the cloudformation template is up and running, here are some manual steps.
 1. Select "aws-elasticbeanstalk-service-role" in Service role.  Click Next.
 1. Review everything.  Click Launch.
 1. Go to IAM in the console and edit the aws-elasticbeanstalk-ec2-worker-role and give it access to invoke the target lambda function by attaching the following policy:
+1. Once environment is ready, go to Configuration -> Software Configuration -> Environment Properties and add key "LAMBDA_FUNCTION" and a value that is the Lambda function ARN and "LAMBDA_REGION" of that function. Click Save to relaunch the infrastructure.
 
 ```json
 {

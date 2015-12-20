@@ -85,7 +85,7 @@ A lambda function used to test the app exists at `lambda-test-harness/app.js`.  
 
 This is a list of things that need to be done -- mostly in the cloudformation template.
 
-1. LAMBDA_WORKER_FUNCTION_NAME; set arn in cloudformation entry
+1. LAMBDA_FUNCTION; set arn in cloudformation entry
 2. add lambda:invokefunction policy to EB worker role aws-elasticbeanstalk-ec2-worker-role
 3. package app into release on github releases and edit CF template to download app zip to EB worker; AppSource
 4. rename EB worker worker role to something more descriptive instead of "aws-elasticbeanstalk-ec2-worker-role"

@@ -1,6 +1,6 @@
 'use strict';
 
-var LAMBDA_WORKER_FUNCTION_NAME = process.env['LAMBDA_WORKER_FUNCTION_NAME'];
+var LAMBDA_WORKER_FUNCTION_NAME = process.env.LAMBDA_FUNCTION;
 
 var validate = require('../validate.js')
   , parseJson = require('../parse-json.js')

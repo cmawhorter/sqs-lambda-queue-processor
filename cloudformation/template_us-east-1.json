@@ -40,7 +40,7 @@
       "NoEcho": false,
       "Type": "String",
       "Description": "",
-      "Default": "/"
+      "Default": "80"
     },
     "NodeVersion": {
       "NoEcho": false,
@@ -58,7 +58,7 @@
       "NoEcho": false,
       "Type": "String",
       "Description": "",
-      "Default": "false"
+      "Default": "true"
     },
     "ProxyServer": {
       "NoEcho": false,
@@ -86,8 +86,8 @@
     "NodeCommand": {
       "NoEcho": false,
       "Type": "String",
-      "Description": "",
-      "Default": "node app.js"
+      "Description": "Command to start the Node.js application. If an empty string is specified, app.js is used, then server.js, then \"npm start\" in that order",
+      "Default": ""
     },
     "ServerPort": {
       "NoEcho": false,
@@ -134,7 +134,7 @@
       "NoEcho": false,
       "Type": "String",
       "Description": "[Required] Purpose is unknown. FIXME: cmawhorter/sqs-lambda-queue-processor#1",
-      "Default": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/hooks.tar.gz"
+      "Default": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/hooks.tar.gz"
     },
     "AWSEBWorkerDeadLetterQueueURL": {
       "NoEcho": false,
@@ -173,6 +173,11 @@
       "NoEcho": false,
       "Type": "List<AWS::EC2::Subnet::Id>",
       "Description": "[Required] A list of subnets you'd like to use from your VPC"
+    },
+    "AWSEBSecurityGroupVPCAvailability": {
+      "NoEcho": false,
+      "Type": "List<AWS::EC2::AvailabilityZone::Name>",
+      "Description": "** testing **"
     },
     "InstanceType": {
       "NoEcho": false,
@@ -274,36 +279,6 @@
     }
   },
   "Resources": {
-    "AWSEBUpdateWaitConditionHZaWMF": {
-      "Type": "AWS::CloudFormation::WaitCondition",
-      "DependsOn": [
-        "AWSEBAutoScalingLaunchConfiguration",
-        "AWSEBWorkerQueue",
-        "AWSEBSecurityGroup",
-        "AWSEBAutoScalingScaleDownPolicy",
-        "AWSEBInstanceLaunchWaitHandle",
-        "AWSEBAutoScalingGroup",
-        "AWSEBInstanceLaunchWaitCondition",
-        "AWSEBAutoScalingScaleUpPolicy",
-        "AWSEBCloudwatchAlarmHigh",
-        "AWSEBBeanstalkMetadata",
-        "AWSEBWorkerDeadLetterQueue",
-        "AWSEBWorkerCronLeaderRegistry",
-        "AWSEBCloudwatchAlarmLow"
-      ],
-      "Properties": {
-        "Timeout": "43200",
-        "Count": "1",
-        "Handle": {
-          "Ref": "AWSEBUpdateWaitConditionHandleHZaWMF"
-        }
-      },
-      "Metadata": {
-        "AWS::CloudFormation::Designer": {
-          "id": "18f0c21b-969f-4ff9-ba5c-f7a1fce66525"
-        }
-      }
-    },
     "AWSEBAutoScalingLaunchConfiguration": {
       "Properties": {
         "SecurityGroups": [
@@ -611,14 +586,6 @@
         }
       }
     },
-    "AWSEBUpdateWaitConditionHandleHZaWMF": {
-      "Type": "AWS::CloudFormation::WaitConditionHandle",
-      "Metadata": {
-        "AWS::CloudFormation::Designer": {
-          "id": "549d38c4-baa1-48a8-9e15-7caa45d9b7d2"
-        }
-      }
-    },
     "AWSEBInstanceLaunchWaitHandle": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Metadata": {
@@ -730,19 +697,9 @@
                   "Ref": "ProxyServer"
                 }
               },
-              "aws:elasticbeanstalk:application:environment": [
-                {
-                  "Fn::Join": [
-                    "=",
-                    [
-                      "LAMBDA_WORKER_FUNCTION_NAME",
-                      {
-                        "Ref": "AWSLambdaWorkerArn"
-                      }
-                    ]
-                  ]
-                }
-              ],
+              "aws:elasticbeanstalk:application:environment": {
+                "Ref": "EnvironmentVariables"
+              },
               "aws:elasticbeanstalk:hostmanager": {
                 "LogPublicationControl": {
                   "Ref": "LogPublicationControl"
@@ -1108,10 +1065,8 @@
               }
             }
           },
-          "_LaunchS3URL": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-us-west-2-271372184222/resources/environments/e-ghvbeqkagg/myFirstElasticBeans-env_LaunchFile",
+          "_LaunchS3URL": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-271372184222/resources/environments/e-stz3ibgfm3/workerqueuetest1-env_LaunchFile",
           "_EBExtensionFilePaths": {
-            "prebuild_0_My_First_Elastic_Beanstalk_Application": ".ebextensions/logging.config",
-            "prebuild_1_My_First_Elastic_Beanstalk_Application": "cron.yaml"
           },
           "_API": {
             "_Commands": {
@@ -1233,11 +1188,11 @@
               "Fn::Join": [
                 "",
                 [
-                  "http:",
+                  "http://localhost",
                   {
                     "Ref": "InstancePort"
                   },
-                  "//localhost:80/health"
+                  "/health"
                 ]
               ]
             },
@@ -1319,7 +1274,7 @@
                 "command": "rm -f /tmp/basehooks.tar.gz"
               },
               "01download_base_hooks": {
-                "command": "curl -sS --retry 3 'https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/basehooks.tar.gz' -o /tmp/basehooks.tar.gz"
+                "command": "curl -sS --retry 3 'https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/basehooks.tar.gz' -o /tmp/basehooks.tar.gz"
               },
               "00mkdir": {
                 "command": "mkdir -p /opt/elasticbeanstalk"
@@ -1905,7 +1860,7 @@
               "/opt/elasticbeanstalk/bin/aws-sqsd-dependencies.sh": {
                 "mode": "000755",
                 "owner": "root",
-                "content": "#!/bin/bash\n#\nRUBY_ROOT=\"/opt/elasticbeanstalk/lib/ruby\"\nBUCKET=\"elasticbeanstalk-env-resources-us-west-2\"\n\non_error() {\n    EXIT_CODE=$?\n    if [ \"${EXIT_CODE}\" != \"0\" ]\n    then\n        echo \"`basename ${0}`:${1-unknown}: error: \\\"${2:-No error message specified}\\\". exit code: ${EXIT_CODE}\"\n        exit 1\n    fi\n}\n\nfunction is_baked\n{\n\tif [[ -f /etc/elasticbeanstalk/baking_manifest/$1 ]]; then\n    true\n\telse\n    false\n\tfi\n}\n\nif [ -d \"${RUBY_ROOT}\" ]\nthen\n    exit 0\nfi\n\nARCHITECTURE=`uname -m`\nif [ \"${ARCHITECTURE}\" == \"i686\" ]\nthen\n    ARCHITECTURE=\"i386\"\nfi\nVM_TAR=\"awseb-ruby-2.1.5-${ARCHITECTURE}-20141120_2028.tar.gz\"\nKEY=\"eb_sqsd/${VM_TAR}\"\n\nif is_baked ${VM_TAR}-manifest; then\n    echo $VM_TAR has already been installed. Skipping installation.\nelse\n\tcurl --retry 10 \"http://${BUCKET}.s3.amazonaws.com/${KEY}\" > /tmp/aws-sqsd-ruby.tar.gz\n\ton_error ${LINENO} \"download of http://${BUCKET}.s3.amazonaws.com/${KEY} failed\"\n\t\n\ttar zxf /tmp/aws-sqsd-ruby.tar.gz -C /\n\ton_error ${LINENO} \"extracting archive /tmp/aws-sqsd-ruby.tar.gz failed\"\n\t\n\trm -f /tmp/aws-sqsd-ruby.tar.gz    \nfi\n",
+                "content": "#!/bin/bash\n#\nRUBY_ROOT=\"/opt/elasticbeanstalk/lib/ruby\"\nBUCKET=\"elasticbeanstalk-env-resources-us-east-1\"\n\non_error() {\n    EXIT_CODE=$?\n    if [ \"${EXIT_CODE}\" != \"0\" ]\n    then\n        echo \"`basename ${0}`:${1-unknown}: error: \\\"${2:-No error message specified}\\\". exit code: ${EXIT_CODE}\"\n        exit 1\n    fi\n}\n\nfunction is_baked\n{\n\tif [[ -f /etc/elasticbeanstalk/baking_manifest/$1 ]]; then\n    true\n\telse\n    false\n\tfi\n}\n\nif [ -d \"${RUBY_ROOT}\" ]\nthen\n    exit 0\nfi\n\nARCHITECTURE=`uname -m`\nif [ \"${ARCHITECTURE}\" == \"i686\" ]\nthen\n    ARCHITECTURE=\"i386\"\nfi\nVM_TAR=\"awseb-ruby-2.1.5-${ARCHITECTURE}-20141120_2028.tar.gz\"\nKEY=\"eb_sqsd/${VM_TAR}\"\n\nif is_baked ${VM_TAR}-manifest; then\n    echo $VM_TAR has already been installed. Skipping installation.\nelse\n\tcurl --retry 10 \"http://${BUCKET}.s3.amazonaws.com/${KEY}\" > /tmp/aws-sqsd-ruby.tar.gz\n\ton_error ${LINENO} \"download of http://${BUCKET}.s3.amazonaws.com/${KEY} failed\"\n\t\n\ttar zxf /tmp/aws-sqsd-ruby.tar.gz -C /\n\ton_error ${LINENO} \"extracting archive /tmp/aws-sqsd-ruby.tar.gz failed\"\n\t\n\trm -f /tmp/aws-sqsd-ruby.tar.gz    \nfi\n",
                 "group": "root"
               },
               "/opt/elasticbeanstalk/tasks/taillogs.d/aws-sqsd.conf": {
@@ -1947,7 +1902,7 @@
               "/opt/elasticbeanstalk/bin/aws-sqsd-install.rb": {
                 "mode": "000755",
                 "owner": "root",
-                "content": "#!/usr/bin/env ruby\n\nrequire 'aws-sdk'\nrequire 'fileutils'\nrequire 'open-uri'\n\nBUCKET = 'elasticbeanstalk-env-resources-us-west-2'\nGEM_NAME = 'aws-sqsd-2.0.gem'\nGEM_KEY = \"eb_sqsd/#{GEM_NAME}\"\nGEM_PATH = \"/var/tmp/#{GEM_NAME}\"\nUSER = \"sqsd\"\nGROUP = 'awseb'\n\n# download the gem\nuri = %[http://#{BUCKET}.s3.amazonaws.com/#{GEM_KEY}]\nopen(uri) do |s|\n    open(GEM_PATH, \"w\") do |f|\n        while buf = s.read(32768)\n            f.write buf\n        end\n    end\nend\n\n# install the gem\nsystem %[gem install --local --bindir /opt/elasticbeanstalk/lib/ruby/bin #{GEM_PATH} 2>&1]\nunless $?.exitstatus == 0\n    puts %[installing gem \"#{GEM_PATH}\" failed]\n    exit 1\nend\nFileUtils.rm_f GEM_PATH\n\n# create the daemon user\nunless (Etc.getpwnam USER rescue nil)\n    system %[/usr/sbin/groupadd -f -r #{GROUP}]\n    unless $?.exitstatus == 0\n        puts %[creating the group \"#{GROUP}\" failed]\n        exit 1\n    end\n\n    system %[/usr/sbin/useradd -g #{GROUP} --no-create-home --comment \"AWS SQSD Daemon\" #{USER}]\n    unless $?.exitstatus == 0\n        puts %[creating the user \"#{USER}\" failed]\n        exit 1\n    end\nend\n\n# create log pid and configuration directories\n%w[/var/log/aws-sqsd /var/run/aws-sqsd /etc/aws-sqsd.d].each do |path|\n    FileUtils.mkdir_p path\n    FileUtils.chown USER, GROUP, path\nend\n",
+                "content": "#!/usr/bin/env ruby\n\nrequire 'aws-sdk'\nrequire 'fileutils'\nrequire 'open-uri'\n\nBUCKET = 'elasticbeanstalk-env-resources-us-east-1'\nGEM_NAME = 'aws-sqsd-2.0.gem'\nGEM_KEY = \"eb_sqsd/#{GEM_NAME}\"\nGEM_PATH = \"/var/tmp/#{GEM_NAME}\"\nUSER = \"sqsd\"\nGROUP = 'awseb'\n\n# download the gem\nuri = %[http://#{BUCKET}.s3.amazonaws.com/#{GEM_KEY}]\nopen(uri) do |s|\n    open(GEM_PATH, \"w\") do |f|\n        while buf = s.read(32768)\n            f.write buf\n        end\n    end\nend\n\n# install the gem\nsystem %[gem install --local --bindir /opt/elasticbeanstalk/lib/ruby/bin #{GEM_PATH} 2>&1]\nunless $?.exitstatus == 0\n    puts %[installing gem \"#{GEM_PATH}\" failed]\n    exit 1\nend\nFileUtils.rm_f GEM_PATH\n\n# create the daemon user\nunless (Etc.getpwnam USER rescue nil)\n    system %[/usr/sbin/groupadd -f -r #{GROUP}]\n    unless $?.exitstatus == 0\n        puts %[creating the group \"#{GROUP}\" failed]\n        exit 1\n    end\n\n    system %[/usr/sbin/useradd -g #{GROUP} --no-create-home --comment \"AWS SQSD Daemon\" #{USER}]\n    unless $?.exitstatus == 0\n        puts %[creating the user \"#{USER}\" failed]\n        exit 1\n    end\nend\n\n# create log pid and configuration directories\n%w[/var/log/aws-sqsd /var/run/aws-sqsd /etc/aws-sqsd.d].each do |path|\n    FileUtils.mkdir_p path\n    FileUtils.chown USER, GROUP, path\nend\n",
                 "group": "root"
               },
               "/opt/elasticbeanstalk/tasks/bundlelogs.d/aws-sqsd.conf": {
@@ -2163,7 +2118,7 @@
           "Ref": "AWSEBAutoScalingLaunchConfiguration"
         },
         "AvailabilityZones": {
-          "Fn::GetAZs": ""
+          "Ref": "AWSEBSecurityGroupVPCAvailability"
         },
         "Cooldown": "360",
         "VPCZoneIdentifier": {
@@ -2502,7 +2457,7 @@
     "AWSEBOptions": {
       "options": {
         "AWSEBHealthdGroupId": "",
-        "NodeDownloadUrl": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/64/",
+        "NodeDownloadUrl": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/64/",
         "HaltStartupCommandsOnFailure": "true",
         "SystemType": "basic",
         "EnvironmentTier": [
@@ -2512,11 +2467,11 @@
             "Name": "Worker"
           }
         ],
-        "UserDataScript": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/UserDataScript.sh",
+        "UserDataScript": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/UserDataScript.sh",
         "LaunchType": "Migration",
-        "ebgems": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/beanstalk-core-2.1.gem https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/beanstalk-core-healthd-1.1.gem https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/executor-1.1.gem",
-        "tarballs": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/awseb-ruby-2.2.2-x86_64-20150919_0250.tar.gz",
-        "rpms": "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/aws-cfn-bootstrap-1.4-7_eb.noarch.rpm https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/stalks/eb_node_js_4.0.1.22.0/lib/aws-elasticbeanstalk-tools-1.17-1.noarch.rpm",
+        "ebgems": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/beanstalk-core-2.1.gem https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/beanstalk-core-healthd-1.1.gem https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/executor-1.1.gem",
+        "tarballs": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/awseb-ruby-2.2.2-x86_64-20150919_0250.tar.gz",
+        "rpms": "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/aws-cfn-bootstrap-1.4-7_eb.noarch.rpm https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/stalks/eb_node_js_4.0.1.22.0/lib/aws-elasticbeanstalk-tools-1.17-1.noarch.rpm",
         "FastVersionDeployment": "true",
         "ServiceRole": "aws-elasticbeanstalk-service-role",
         "HealthdProxyLogLocation": "",
@@ -2525,17 +2480,17 @@
         "LeaderTestScript": "/opt/elasticbeanstalk/bin/leader-test.sh",
         "DefaultsScript": "/opt/elasticbeanstalk/containerfiles/containerdefaults.py",
         "downloadSourceBundleScriptLocation": [
-          "https://elasticbeanstalk-env-resources-us-west-2.s3.amazonaws.com/eb_patching_resources/download_source_bundle.py"
+          "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/eb_patching_resources/download_source_bundle.py"
         ],
         "DefaultSSHPort": "22",
-        "ProxyServer": "none",
+        "ProxyServer": "nginx",
         "AWSEBHealthdEndpoint": "",
         "EmbeddedConfigsetsEnabled": "true",
-        "EBSNSTopicArn": "arn:aws:sns:us-west-2:271372184222:ElasticBeanstalkNotifications-Environment-myFirstElasticBeans-env",
+        "EBSNSTopicArn": "",
         "guid": "3326d2c6a7d6",
         "nodeploymentOnStartup": "true",
         "ebpatchscripturl": [
-          "https://s3-us-west-2.amazonaws.com/elasticbeanstalk-env-resources-us-west-2/eb_patching_resources/patch_instance.py"
+          "https://s3.amazonaws.com/elasticbeanstalk-env-resources-us-east-1/eb_patching_resources/patch_instance.py"
         ]
       }
     },
@@ -2577,10 +2532,10 @@
         "hvm": "ami-393f1a57"
       },
       "us-east-1": {
-        "pv": "ami-5fb8c835",
-        "graphics": "ami-e998ea83",
+        "pv": "ami-041e4a6e",
+        "graphics": "ami-8c6b40e4",
         "gpu": "",
-        "hvm": "ami-40b7c72a"
+        "hvm": "ami-3c1d4956"
       },
       "sa-east-1": {
         "pv": "ami-7d15ad11",
@@ -2595,10 +2550,10 @@
         "hvm": "ami-f7e48897"
       },
       "us-west-2": {
-        "pv": "ami-75dec214",
-        "graphics": "ami-abbe919b",
+        "pv": "ami-d93622b8",
+        "graphics": "ami-315f4850",
         "gpu": "",
-        "hvm": "ami-c2dec2a3"
+        "hvm": "ami-b03420d1"
       }
     },
     "AWSEBAWSInstanceType2Arch": {

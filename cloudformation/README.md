@@ -51,3 +51,7 @@ Until the cloudformation template is up and running, here are some manual steps.
 ```
 
 That will take a while and _should_ eventually finish and have GREEN health.   If it does, you can start sending messages to the SQS work queue immediately.  
+
+
+
+http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.roles.aeb.tiers.worker.html

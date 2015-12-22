@@ -1,0 +1,175 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "41ae8d57-91b2-423a-8699-a703d443acc3": {
+        "size": {
+          "width": 360,
+          "height": 140
+        },
+        "position": {
+          "x": -900,
+          "y": -100
+        },
+        "z": 0,
+        "embeds": [
+          "9c17b00e-e43e-4895-8db1-e616b1b1e376",
+          "aa9c3891-b9c4-46b2-8adf-ed04b9b5480f"
+        ]
+      },
+      "9c17b00e-e43e-4895-8db1-e616b1b1e376": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": -889,
+          "y": -65
+        },
+        "z": 1,
+        "parent": "41ae8d57-91b2-423a-8699-a703d443acc3",
+        "embeds": []
+      },
+      "aa9c3891-b9c4-46b2-8adf-ed04b9b5480f": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": -740,
+          "y": -60
+        },
+        "z": 1,
+        "parent": "41ae8d57-91b2-423a-8699-a703d443acc3",
+        "embeds": [],
+        "isrelatedto": [
+          "9c17b00e-e43e-4895-8db1-e616b1b1e376",
+          "7aa0e040-c493-4989-b169-d3b0fef54cfb"
+        ]
+      },
+      "27e0e88f-d798-419a-8ba9-c05e2237b803": {
+        "source": {
+          "id": "41ae8d57-91b2-423a-8699-a703d443acc3"
+        },
+        "target": {
+          "id": "7aa0e040-c493-4989-b169-d3b0fef54cfb"
+        },
+        "z": 2
+      }
+    }
+  },
+  "Resources": {
+    "SqsLambdaEbApp": {
+      "Type": "AWS::ElasticBeanstalk::Application",
+      "Properties": {
+        "Description": "sqs-lambda-queue-processor applcation"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "41ae8d57-91b2-423a-8699-a703d443acc3"
+        }
+      },
+      "DeletionPolicy": "Delete"
+    },
+    "SqsLambdaEbVer": {
+      "Type": "AWS::ElasticBeanstalk::ApplicationVersion",
+      "Properties": {
+        "ApplicationName": {
+          "Ref": "SqsLambdaEbApp"
+        },
+        "Description": "sqs-lambda-queue-processor applcation version",
+        "SourceBundle": {
+          "S3Bucket": "sqs-lambda-queue-processor",
+          "S3Key": "ep-app-bundle/v1.0.0-alpha1.zip"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "9c17b00e-e43e-4895-8db1-e616b1b1e376"
+        }
+      },
+      "DeletionPolicy": "Delete"
+    },
+    "SqsLambdaEbEnv": {
+      "Type": "AWS::ElasticBeanstalk::Environment",
+      "Properties": {
+        "ApplicationName": {
+          "Ref": "SqsLambdaEbApp"
+        },
+        "Description": "sqs-lambda-queue-processor environment",
+        "VersionLabel": {
+          "Ref": "SqsLambdaEbVer"
+        },
+        "OptionSettings": [
+          {
+            "Namespace": "aws:elasticbeanstalk:container:nodejs",
+            "OptionName": "NodeVersion",
+            "Value": "4.2.3"
+          },
+          {
+            "Namespace": "aws:elasticbeanstalk:container:nodejs",
+            "OptionName": "GzipCompression",
+            "Value": "false"
+          },
+          {
+            "Namespace": "aws:elasticbeanstalk:container:nodejs",
+            "OptionName": "ProxyServer",
+            "Value": "none"
+          },
+          {
+            "Namespace": "aws:autoscaling:launchconfiguration",
+            "OptionName": "IamInstanceProfile",
+            "Value": {
+              "Ref": "SqsLambdaWorkerProfile"
+            }
+          },
+          {
+            "Namespace": "aws:elasticbeanstalk:application",
+            "OptionName": "Application Healthcheck URL",
+            "Value": "/health"
+          },
+          {
+            "Namespace": "aws:elasticbeanstalk:application:environment",
+            "OptionName": "LAMBDA_FUNCTION",
+            "Value": {
+              "Ref": "LambdaWorker"
+            }
+          },
+          {
+            "Namespace": "aws:elasticbeanstalk:application:environment",
+            "OptionName": "LAMBDA_REGION",
+            "Value": {
+              "Ref": "AWS::Region"
+            }
+          }
+        ],
+        "SolutionStackName": "64bit Amazon Linux 2015.09 v2.0.5 running Node.js",
+        "Tier": {
+          "Type": "SQS/HTTP",
+          "Version": "2.0",
+          "Name": "Worker"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "aa9c3891-b9c4-46b2-8adf-ed04b9b5480f"
+        }
+      },
+      "DeletionPolicy": "Delete"
+    }
+  },
+  "Parameters": {
+    "LambdaWorker": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "ARN of lambda worker that will process the SQS events.  Must be in same region.",
+      "Default": ""
+    },
+    "SqsLambdaWorkerProfile": {
+      "NoEcho": false,
+      "Type": "String",
+      "Description": "IAM Instance Profile to attach to ElasticBeanstalk EC2 instances.  See README on cmawhorter/sqs-lambda-queue-processor for details.",
+      "Default": "aws-elasticbeanstalk-ec2-worker-role"
+    }
+  }
+}

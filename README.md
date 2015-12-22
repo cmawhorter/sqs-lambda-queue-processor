@@ -80,6 +80,8 @@ exports.handler = function(event, context) {
 
 A lambda function used to test the app exists at `lambda-test-harness/app.js`.  It includes handlers that simualate success, failure, error.
 
+Be aware of the Lambda's [account-wide concurrency limits](http://docs.aws.amazon.com/lambda/latest/dg/limits.html#limits-safety-throttles).  
+
 ## About the CloudFormation Template
 
 There are two template files included:

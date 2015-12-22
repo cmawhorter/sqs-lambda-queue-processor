@@ -1,17 +1,17 @@
 # sqs-lambda-queue-processor
 
-Process AWS SQS messages with an AWS Lambda function.  aka Use a Lambda function as your queue worker.
+Process AWS SQS messages with an AWS Lambda function.  aka Use a Lambda function as your queue worker/processor.
 
 Lambda functions can be automatically invoked in a variety of ways and from many event sources (DynamoDB, S3, SNS) but one service is conspiculously absent: SQS.
 
-There is no way to configure SQS to send messages to a Lambda function.  This repo fixes that. (***Currently a Work in Progress***)
+There is no way to configure SQS to send messages to a Lambda function.  This repo fixes that.
 
 ## Get Started
 
 1. Create a new AWS Lambda function to process our SQS events.  See below for details.
-1. Create a new CloudFormation stack using the cloudformation/template_us-east-1.json template (FIXME: this template is 90% done but [has a bug](cloudformation/README.md))
+1. In your AWS console, go to CloudFormation and create a New Stack using `cloudformation/template.json`
 
-Done.
+That's it.  When messages are sent to the queue, they'll be processed by your Lambda function.
 
 ## How it works
 
@@ -80,21 +80,40 @@ exports.handler = function(event, context) {
 
 A lambda function used to test the app exists at `lambda-test-harness/app.js`.  It includes handlers that simualate success, failure, error.
 
+## About the CloudFormation Template
 
-## TODO:
+There are two template files included:
 
-This is a list of things that need to be done -- mostly in the cloudformation template.
+1. `template.json` - Quickest way to get set up
+1. `template-without-role.json` - If you phear me, this is a very of the template without the IAM Role creation.  See below for more.
 
-1. LAMBDA_FUNCTION; set arn in cloudformation entry
-2. add lambda:invokefunction policy to EB worker role aws-elasticbeanstalk-ec2-worker-role
-3. package app into release on github releases and edit CF template to download app zip to EB worker; AppSource
-4. rename EB worker worker role to something more descriptive instead of "aws-elasticbeanstalk-ec2-worker-role"
-5. remove scheduled tasks and dynamodb?
-6. what do the s3 buckets do?  are they needed?
-7. tune ec2 concurrency; can probably handle an increase  (it seems like only one instance of node is running on ec2?)
-8. Remove some required defaults from being editable in CF template e.g. AWSEBHttpPath
-9. make node.js version static
-10. Dynamic error visibility;  currently set to "-1" i.e. retry as quickly as possible.  exp backoff would be nice or a longer time by default at least
-11. remove external access to cluster
-12. many parameters can be automatically set based on target instance size
-13. set up a quick tutorial for what/how prerequisites; lambda, vpc + subnets + firewall
+## Manually Create Role
+
+The `template.json` file does everything including creating the necessary role.  However, if you don't want that you can manually create the role.
+
+1. Create an Elastic Beanstalk sample application with a Worker environment.  The specifics don't matter, but this will create an "aws-elasticbeanstalk-ec2-worker-role" with [an almost-ready policy](http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.roles.aeb.tiers.worker.html)
+1. Edit the Role and add a new inline policy.  The contents are below.
+1. Create a new CloudFormatation stack and enter "aws-elasticbeanstalk-ec2-worker-role" when prompted
+
+### Inline Policy
+
+This policy gives your EC2 instances the permission to invoke your Lambda worker function.
+
+Edit the Resource line below with your Lambda ARN.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:InvokeFunction"
+      ],
+      "Resource": [
+        "arn:aws:lambda:us-east-1:1234567890:function:exampleFunctionName"
+      ]
+    }
+  ]
+}
+```

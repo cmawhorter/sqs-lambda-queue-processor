@@ -36,10 +36,10 @@ exports.failurehandler = function(event, context) {
 
 exports.imperfecthandler = function(event, context) {
   var r = Math.random();
-  if (r > 0.1) { // ~90% of time return success
+  if (r > 0.4) { // ~60% of time return success
     return exports.successhandler(event, context);
   }
-  else { // ~10% of the time fail
+  else { // ~40% of the time fail
     // 50/50 soft/hard failures
     return exports[Math.random() % 2 === 0 ? 'softfailurehandler' : 'failurehandler'](event, context);
   }

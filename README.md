@@ -35,7 +35,7 @@ The structure of the our predicted/simulated SQS Event is based on a combination
       EventVersion_SQSLAMBDA: '1.0', // Our version 
       EventTime: '2015-12-20T02:44:27.893Z',
       EventSource: 'aws:sqs',
-      EventQueueArn: 'aws:sqs:queue:...',
+      EventQueueName: 'aws:sqs:queue:...',
       Sqs: {
         // Only one message is sent always, but SQS does have a receive batch, so this seems to be
         // a probable structure

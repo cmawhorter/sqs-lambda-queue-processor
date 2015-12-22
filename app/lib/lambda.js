@@ -46,7 +46,7 @@ var lambdaService = module.exports = {
           EventVersion_SQSLAMBDA: '1.0',
           EventTime: new Date().toISOString(),
           EventSource: 'aws:sqs',
-          EventQueueArn: req.headers['x-aws-sqsd-queue'],
+          EventQueueName: req.headers['x-aws-sqsd-queue'],
           Sqs: {
             Messages: [ message ],  // we are always only one
           }

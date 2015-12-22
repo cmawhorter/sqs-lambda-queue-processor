@@ -156,7 +156,7 @@
             "Namespace": "aws:autoscaling:launchconfiguration",
             "OptionName": "IamInstanceProfile",
             "Value": {
-              "Ref": "SqsLambdaWorkerRole"
+              "Ref": "SqsLambdaWorkerProfile"
             }
           },
           {

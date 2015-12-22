@@ -9,6 +9,6 @@ module.exports = function log(entry) {
     console.log(entry);
   }
   else {
-    fs.appendFileSync('/tmp/sample-app.log', new Date().toISOString() + ' - ' + entry + '\n');
+    fs.appendFileSync('/tmp/sample-app.log', '[' + new Date().toISOString() + '] ' + entry + '\n');
   }
 };

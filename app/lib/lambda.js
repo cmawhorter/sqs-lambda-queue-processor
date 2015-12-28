@@ -3,7 +3,8 @@
 var AWS = require('aws-sdk');
 var lambda = new AWS.Lambda({ region: process.env.LAMBDA_REGION, logger: process.env.NODE_ENV === 'development' ? console : null });
 
-var parseJson = require('./parse-json.js');
+var parseJson = require('./parse-json.js')
+  , findHeader = require('./find-header.js');
 
 var ATTR_HEADER_PREFIX = 'x-aws-sqsd-attr-';
 
@@ -31,7 +32,7 @@ var lambdaService = module.exports = {
     for (var k in req.headers) {
       var headerName = k.toLowerCase();
       if (headerName.indexOf(ATTR_HEADER_PREFIX) === 0) {
-        var attrName = k.substr(ATTR_HEADER_PREFIX.length);
+        var attrName = findHeader(headerName, req).substr(ATTR_HEADER_PREFIX.length);
         // EB worker sqsd always discards binary attributes - see http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
         message.MessageAttributes[attrName] = {
           DataType: 'String',

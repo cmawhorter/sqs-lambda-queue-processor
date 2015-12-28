@@ -12,7 +12,7 @@ var forwardMessageToLambdaWorker = function(req, res, body) {
   var sqsMessage = parseJson(body, function(err) {
     return body; // use raw body
   });
-  console.log('body', body);
+  // console.log('body', body);
   var lambdaEvent = lambda.createLambdaEventFromSqsMessage(req, sqsMessage);
   lambda.trigger(LAMBDA_WORKER_FUNCTION_NAME, lambdaEvent, function(err, data) {
     if (err) {

@@ -34,7 +34,7 @@ var lambdaService = module.exports = {
         // EB worker sqsd always discards binary attributes - see http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
         message.MessageAttributes[attrName] = {
           DataType: 'String',
-          StringValue: req.headers[k],
+          StringValue: req.headers[headerName],
         };
       }
     }

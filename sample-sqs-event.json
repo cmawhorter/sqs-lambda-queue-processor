@@ -1,0 +1,29 @@
+{
+  "Records": [
+    {
+      "EventVersion": "0.0",
+      "EventVersion_SQSLAMBDA": "1.0",
+      "EventTime": "2015-12-22T23:50:40.672Z",
+      "EventSource": "aws:sqs",
+      "EventQueueName": "awseb-e-n6examplezt-stack-AWSEBWorkerQueue-1R38UI6DYOW38",
+      "Sqs": {
+        "Messages": [
+          {
+            "Body": {
+              "message": "body",
+              "is": true,
+              "here": 1
+            },
+            "MessageId": "af1b0877-8fa3-47bb-adb5-b2761371246e",
+            "Attributes": {
+              "ApproximateFirstReceiveTimestamp": "2015-12-22T23:50:40Z",
+              "SenderId": "your aws account id will be here",
+              "ApproximateReceiveCount": "1"
+            },
+            "MessageAttributes": {}
+          }
+        ]
+      }
+    }
+  ]
+}

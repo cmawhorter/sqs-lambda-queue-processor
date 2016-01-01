@@ -11,7 +11,9 @@ There is no way to configure SQS to send messages to a Lambda function.  This re
 1. Create a new AWS Lambda function to process our SQS events.  See below for details.
 1. In your AWS console, go to CloudFormation and create a New Stack using `cloudformation/template.json`
 
-That's it.  When messages are sent to the queue, they'll be processed by your Lambda function.
+That's it.  When messages are sent to the queue, they'll be processed by your Lambda function.  
+
+_Be sure to use a CloudFormation stack name that is < 23 characters or creation will fail with an error that complains about "EnvironmentNames"._
 
 ## How it works
 

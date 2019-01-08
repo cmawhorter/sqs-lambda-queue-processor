@@ -1,3 +1,11 @@
+### Deprecated
+
+In case you haven't heard -- Lambda now [supports SQS as an event source](https://aws.amazon.com/blogs/aws/aws-lambda-adds-amazon-simple-queue-service-to-supported-event-sources/).  
+
+It's pretty barebones (like everything aws), but it'll probably be a better option for more usecases than this repo.  \<rant>AWS Lambda needs to let me configure my own damn auto scaling\</rant>.
+
+
+
 # sqs-lambda-queue-processor
 
 Process AWS SQS messages with an AWS Lambda function.  aka Use a Lambda function as your queue worker/processor.
